@@ -30,7 +30,8 @@ Welcome to the **Fetch Rewards Multiplatform App**, a Kotlin Multiplatform (KMP)
 │   ├── AppDelegate.swift      # iOS application setup
 │   ├── ContentView.swift      # SwiftUI entry point (optional)
 │
-└── /androidApp                # Android application entry point-multiplatform-dev/get-started.html)…
+└── /androidApp                # Android application entry point-multiplatform-dev/get-started.html)
+```
 
 # 💡 Tech Stack
 
@@ -66,15 +67,11 @@ Welcome to the **Fetch Rewards Multiplatform App**, a Kotlin Multiplatform (KMP)
 
 ### Android
 
-| **List View**               | **User Details**          |
-|-----------------------------|---------------------------|
-| ![Android List View](https://via.placeholder.com/300x600) | ![Android User Details](https://via.placeholder.com/300x600) |
+| **List View**               |     
+|-----------------------------|
+| ![Android List View](![Screenshot_20250105_034505](https://github.com/user-attachments/assets/1845ec92-f581-47d8-8602-dfd7d1c45cb1)
+)
 
-### iOS
-
-| **List View**               | **User Details**          |
-|-----------------------------|---------------------------|
-| ![iOS List View](https://via.placeholder.com/300x600) | ![iOS User Details](https://via.placeholder.com/300x600) |
 
 ---
 
@@ -85,5 +82,3 @@ Welcome to the **Fetch Rewards Multiplatform App**, a Kotlin Multiplatform (KMP)
 - **Kotlin 1.9.0** or later.
 - **Android Studio Flamingo** or later.
 - **Xcode 14.0** or later for iOS development.
-
-### Steps
