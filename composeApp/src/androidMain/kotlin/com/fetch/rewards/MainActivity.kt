@@ -5,32 +5,28 @@ import android.os.Bundle
 import android.speech.SpeechRecognizer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.fetch.rewards.di.providehttpClientModule
 import com.fetch.rewards.di.usersModule
 import com.shulalab.fetch_rewards.App
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
 class AndroidApp : Application() {
-    companion object {
-        lateinit var INSTANCE: AndroidApp
-    }
-
 
     override fun onCreate() {
         super.onCreate()
-
-
-        INSTANCE = this
 
         startKoin {
             androidLogger()
             androidContext(this@AndroidApp)
             modules(
-                usersModule()
-
+                usersModule() + providehttpClientModule()
             )
         }
 
@@ -42,15 +38,11 @@ class AndroidApp : Application() {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Napier.base(DebugAntilog())
 
+        enableEdgeToEdge()
         setContent {
             App()
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

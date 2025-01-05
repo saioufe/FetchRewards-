@@ -5,6 +5,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -32,6 +34,9 @@ import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +75,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fetch.rewards.ui.UsersEvent
 import com.fetch.rewards.ui.UsersState
 import com.fetch.rewards.ui.viewModel.UsersViewModel
+import com.shulalab.fetch_rewards.domain.UserModel
 import fetchrewards.composeapp.generated.resources.Res
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
@@ -87,7 +93,7 @@ class UsersScreen() : Screen, KoinComponent {
         val usersViewModel: UsersViewModel = get()
         val state by usersViewModel.state.collectAsState()
 
-        readingQuran(
+        userCompose(
             state = state,
             onEvent = usersViewModel::onEvent,
         )
@@ -95,106 +101,114 @@ class UsersScreen() : Screen, KoinComponent {
 }
 
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun readingQuran(
+fun userCompose(
     state: UsersState,
     onEvent: (UsersEvent) -> Unit,
 ) {
-
-
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var showPlayBar by remember { mutableStateOf(false) }
-    var showIcons by remember { mutableStateOf(false) }
-    var iconBoxPosition by remember { mutableStateOf(Offset(0f, 0f)) }
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) } // Declaring textLayoutResult
-    var whichBottomSheet = remember { mutableStateOf("") }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope() // Coroutine scope to launch suspend functions
-
-    val density = LocalDensity.current
     val navigator = LocalNavigator.currentOrThrow
-    val listState = rememberLazyListState()
 
-
-    // Dismiss the bottom sheet when scrolling
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (listState.isScrollInProgress) {
-        }
+    // Trigger fetching users when the screen is first composed
+    LaunchedEffect(Unit) {
+        onEvent(UsersEvent.GetUsers)
     }
 
     Scaffold(
-        snackbarHost = {
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.align(Alignment.Center)
-                        .clickable { // Dismiss on click
-                            coroutineScope.launch {
-                                snackbarHostState.currentSnackbarData?.dismiss()
-                            }
-                        }, // Align Snackbar to the top center
-                ) { data ->
-                    Snackbar(
-                        modifier = Modifier.padding(8.dp),
-                        contentColor = Color.Black,
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center // Align content (text) to center
-                        ) {
-                            Text(
-                                data.message,
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                }
-            }
-        },
         topBar = {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 50.dp, start = 10.dp, end = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Image(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = null,
-                    modifier = Modifier.size(30.dp).align(Alignment.Top)
-                        .clickable(
-                            indication = null,  // This removes the ripple effect
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            navigator.pop()
-                        },
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable { navigator.pop() },
                     colorFilter = ColorFilter.tint(Color.Gray)
                 )
                 Text(
-                    modifier = Modifier.padding(horizontal = 7.dp),
-                    textAlign = TextAlign.Center,
-                    text = "saif",
+                    text = "Users Table",
                     fontSize = 20.sp,
                     color = Color(0xFF464646),
-
-                    )
-                Text(
-                    modifier = Modifier.padding(horizontal = 7.dp).clickable {
-                    },
-                    textAlign = TextAlign.Center,
-                    text = "Aa",
-                    fontSize = 17.sp,
-                    color = Color(0xFFB1B1B1),
+                    textAlign = TextAlign.Center
                 )
             }
-
         }
-    ) { paddingValue ->
-        // Start the spotlight
-
-
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            when {
+                state.isLoading -> {
+                    // Loading State
+                    CircularWavyProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                state.isFailure -> {
+                    // Failure State
+                    Text(
+                        text = state.errorMessage,
+                        color = Color.Red,
+                        fontSize = 16.sp,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                state.isSuccess -> {
+                    // Success State: Display users in a table format
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = paddingValues,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        state.users.forEach { (listId, users) ->
+                            // Header for each group (listId)
+                            item {
+                                Text(
+                                    text = "List ID: $listId",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF464646),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.LightGray)
+                                        .padding(8.dp)
+                                )
+                            }
+                            // Rows for each user in the group
+                            items(users) { user ->
+                                UserRow(user)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
+}
 
+@Composable
+fun UserRow(user: UserModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(8.dp)
+            .border(1.dp, Color.LightGray),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "ID: ${user.id}",
+            fontSize = 14.sp,
+            color = Color.Black,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = user.name.orEmpty(),
+            fontSize = 14.sp,
+            color = Color.Black,
+            modifier = Modifier.weight(3f),
+            textAlign = TextAlign.Start
+        )
+    }
 }

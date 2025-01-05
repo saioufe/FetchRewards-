@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 kotlin {
@@ -39,6 +40,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -51,6 +53,7 @@ kotlin {
             implementation(libs.ktor.client.cio)
             implementation(libs.kotlin.serialization)
             implementation(libs.napier)
+            implementation(libs.androidx.material3)
 
             //navigation & viewmodel
             implementation(libs.voyager.navigator)
@@ -63,14 +66,14 @@ kotlin {
 
 android {
     namespace = "com.fetch.rewards"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.fetch.rewards"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        minSdk = 24
+        targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.00.00"
     }
     packaging {
         resources {

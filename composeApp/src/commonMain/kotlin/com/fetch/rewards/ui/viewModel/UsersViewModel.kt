@@ -1,6 +1,5 @@
 package com.fetch.rewards.ui.viewModel
 
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.fetch.rewards.ui.UsersEvent
@@ -37,7 +36,7 @@ class UsersViewModel(
                 isLoading = true,
                 isSuccess = false,
                 isFailure = false,
-                users = listOf(UserModel.empty)
+                users = emptyList()
             )
         }
 
@@ -45,7 +44,7 @@ class UsersViewModel(
             repository.getUsers().collect { result ->
                 result.onSuccess { users ->
 
-                    Napier.d("saioufe this is the Tafseer -> $users")
+                    Napier.d("saioufe this is the users -> $users")
                     _state.update {
                         it.copy(
                             isLoading = false,
@@ -54,6 +53,8 @@ class UsersViewModel(
                         )
                     }
                 }.onFailure { exception ->
+                    Napier.d("saioufe error fetching -> ${exception.message}")
+
                     _state.update {
                         it.copy(
                             isLoading = false,

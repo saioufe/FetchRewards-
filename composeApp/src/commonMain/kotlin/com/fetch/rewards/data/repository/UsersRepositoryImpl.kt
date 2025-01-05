@@ -9,7 +9,7 @@ class UsersRepositoryImpl(
 ) : UsersRepository {
 
 
-    override suspend fun getUsers(): Flow<Result<List<UserModel>>> {
+    override suspend fun getUsers(): Flow<Result<List<Pair<Int, List<UserModel>>>>> {
         return remoteDataSourceUsers.getUsers()
     }
 
