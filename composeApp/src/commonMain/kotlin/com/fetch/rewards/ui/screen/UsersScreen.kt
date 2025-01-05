@@ -2,7 +2,13 @@ package com.fetch.rewards.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +18,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
@@ -34,9 +42,13 @@ import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +65,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -77,6 +90,7 @@ import com.fetch.rewards.ui.UsersState
 import com.fetch.rewards.ui.viewModel.UsersViewModel
 import com.shulalab.fetch_rewards.domain.UserModel
 import fetchrewards.composeapp.generated.resources.Res
+import fetchrewards.composeapp.generated.resources.fetch
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
@@ -120,21 +134,29 @@ fun userCompose(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 50.dp, start = 10.dp, end = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = null,
+                    contentDescription = "Back",
                     modifier = Modifier
                         .size(30.dp)
                         .clickable { navigator.pop() },
-                    colorFilter = ColorFilter.tint(Color.Gray)
+                    tint = Color.Gray
                 )
-                Text(
-                    text = "Users Table",
-                    fontSize = 20.sp,
-                    color = Color(0xFF464646),
-                    textAlign = TextAlign.Center
+               Image(
+                   painter = painterResource(Res.drawable.fetch),
+                   contentDescription = "fetch logo",
+                   modifier = Modifier.width(170.dp).height(70.dp)
+               )
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onEvent(UsersEvent.GetUsers) },
+                    tint = Color.Gray
                 )
             }
         }
@@ -143,41 +165,64 @@ fun userCompose(
             when {
                 state.isLoading -> {
                     // Loading State
-                    CircularWavyProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularWavyProgressIndicator(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.Center),
+                        color = Color(0xFF464646),
+                        stroke = Stroke(width = 4f)
+                    )
                 }
                 state.isFailure -> {
                     // Failure State
                     Text(
                         text = state.errorMessage,
                         color = Color.Red,
-                        fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center)
+                        fontSize = 18.sp,
+                        modifier = Modifier.align(Alignment.Center),
+                        textAlign = TextAlign.Center
                     )
                 }
                 state.isSuccess -> {
-                    // Success State: Display users in a table format
+                    // Success State: Display users in a table format with animations
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = paddingValues,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         state.users.forEach { (listId, users) ->
                             // Header for each group (listId)
                             item {
-                                Text(
-                                    text = "List ID: $listId",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF464646),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color.LightGray)
-                                        .padding(8.dp)
-                                )
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn() + expandVertically(),
+                                    exit = fadeOut() + shrinkVertically()
+                                ) {
+                                    Box(modifier = Modifier.padding(10.dp)){
+                                        Text(
+                                            text = "List ID: $listId",
+                                            fontSize = 17.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(Color(0xff300d38), RoundedCornerShape(8.dp))
+                                                .padding(15.dp)
+                                        )
+                                    }
+                                }
                             }
                             // Rows for each user in the group
                             items(users) { user ->
-                                UserRow(user)
+                                Box(modifier = Modifier.padding(horizontal = 10.dp)){
+                                    UserRow(
+                                        user = user,
+                                        onClick = { selectedUser ->
+                                            // Handle click event
+                                            //navigator.push(DetailScreen(selectedUser))
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -188,27 +233,41 @@ fun userCompose(
 }
 
 @Composable
-fun UserRow(user: UserModel) {
-    Row(
+fun UserRow(user: UserModel, onClick: (UserModel) -> Unit) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(8.dp)
-            .border(1.dp, Color.LightGray),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .clickable { isExpanded = !isExpanded; onClick(user) }
+            .animateContentSize(), // Smooth expand/collapse animation
+        shape = RoundedCornerShape(10.dp),
+        elevation = 2.dp,
+        backgroundColor = Color.White,
+        border = BorderStroke(width = 1.dp, color = Color.LightGray)
     ) {
-        Text(
-            text = "ID: ${user.id}",
-            fontSize = 14.sp,
-            color = Color.Black,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = user.name.orEmpty(),
-            fontSize = 14.sp,
-            color = Color.Black,
-            modifier = Modifier.weight(3f),
-            textAlign = TextAlign.Start
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "ID: ${user.id}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFfba919)
+            )
+
+            if (isExpanded) {
+                Text(
+                    text = user.name.orEmpty(),
+                    fontSize = 16.sp,
+                    color = Color(0xfffba919),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Text(
+                    text = user.listId.toString(),
+                    fontSize = 14.sp,
+                    color = Color(0xfffba919),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
     }
 }
